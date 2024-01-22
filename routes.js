@@ -3,20 +3,29 @@ const fs = require('fs');
 const requestHandler = (req, res) => {
     const url = req.url;
     const method = req.method;
+    
 
     if (url === '/') {
         res.write('<html>');
         res.write('<head><title>Message</title></head>');
-        res.write('<body><form action="/message" method="POST"><input type="text" name="message"><button type="submit">Send</button></form></body>');
-        res.write('</html>');   
-        return res.end();
+        res.write('<body>');
+
+        readFile((data) => {
+            res.write(`<p>${data}</p>`);
+            res.write('<form action="/message" method="POST"><input type="text" name="message"><button type="submit">Send</button></form>');
+            res.write('</body>');
+            res.write('</html>');
+            res.end();
+        })
+
+        return;
     }
+
     
     if (url === '/message' && method === 'POST') {
         const body = [];
         req.on('data', (chunk) => {
             body.push(chunk);
-            console.log(chunk);
         });
         return req.on('end', () => {
             const parsedBody = Buffer.concat(body).toString();
@@ -35,6 +44,17 @@ const requestHandler = (req, res) => {
     res.write('<body><h1>Hello form my Nodejs server!</h1></body>');
     res.write('</html>');
     res.end();
+
+    function readFile(callback) {
+        fs.readFile('message.txt', 'utf-8', (err, data) => {
+            if (err) {
+                callback(`Error: ${err}`)
+            } else {
+                callback(data)
+            }
+            
+        })
+    }
 };
 
 // module.exports = requestHandler;
@@ -48,4 +68,3 @@ const requestHandler = (req, res) => {
 // module.exports.someText = 'Some hard coded text'
 
 exports.handler = requestHandler;
-exports.someText = 'Some hard coded text'
